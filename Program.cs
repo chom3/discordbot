@@ -17,7 +17,7 @@ namespace DBHelloWorld
         {
             var discord = new DiscordClient(new DiscordConfiguration()
             {
-                Token = "OTk3NjE2MjcwNzQyNjU0OTk2.G0t8tC.GNyAb919wDyEZpmv1kgot-s4ITwO2GnUIbwqGs",
+                Token = "",
                 TokenType = TokenType.Bot,
                 Intents = DiscordIntents.AllUnprivileged
             });
