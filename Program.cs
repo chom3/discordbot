@@ -1,23 +1,30 @@
 ﻿using DSharpPlus;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Threading.Tasks;
 
-namespace DBHelloWorld
+namespace CoreyBot
 {
-
-
     class Program
     {
-        static void Main(string[] args)
+        private readonly IConfiguration _config;
+        public Program() 
         {
-            MainAsync().GetAwaiter().GetResult();
-        }
+            // create the configuration
+            var _builder = new ConfigurationBuilder()
+                .SetBasePath(AppContext.BaseDirectory)
+                .AddJsonFile(path: "appsettings.json");
 
-        static async Task MainAsync()
+            // build the configuration and assign to _config          
+            _config = _builder.Build();
+        }
+        static Task Main() => new Program().MainAsync();
+        
+        public async Task MainAsync()
         {
             var discord = new DiscordClient(new DiscordConfiguration()
             {
-                Token = "",
+                Token = _config["token"],
                 TokenType = TokenType.Bot,
                 Intents = DiscordIntents.AllUnprivileged
             });
