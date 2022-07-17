@@ -1,5 +1,7 @@
 ﻿using DSharpPlus;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 
@@ -7,6 +9,7 @@ namespace CoreyBot
 {
     class Program
     {
+        public readonly EventId _botId = new EventId();
         private readonly IConfiguration _config;
         public Program() 
         {
@@ -22,23 +25,32 @@ namespace CoreyBot
         
         public async Task MainAsync()
         {
-            var discord = new DiscordClient(new DiscordConfiguration()
+            using (var services = ConfigureServices())
+            {
+                var client = services.GetRequiredService<DiscordClient>();
+                var clientEvents = new ClientEvents(_botId);
+
+                client.Ready += clientEvents.ClientReady;
+                client.GuildAvailable += clientEvents.ClientGuildAvailable;
+                client.ClientErrored += clientEvents.ClientError;
+
+
+                await client.ConnectAsync();
+                await Task.Delay(-1);
+            }
+        }
+
+        private ServiceProvider ConfigureServices()
+        {
+            var discordClient = new DiscordClient(new DiscordConfiguration()
             {
                 Token = _config["token"],
                 TokenType = TokenType.Bot,
                 Intents = DiscordIntents.AllUnprivileged
             });
-
-            discord.MessageCreated += async (s, e) =>
-            {
-                if (e.Message.Content.Contains("hello"))
-                {
-                    await e.Message.RespondAsync("world");
-                }
-            };
-
-            await discord.ConnectAsync();
-            await Task.Delay(-1);
+            return new ServiceCollection()
+                .AddSingleton(discordClient)
+                .BuildServiceProvider();
         }
     }
 }
